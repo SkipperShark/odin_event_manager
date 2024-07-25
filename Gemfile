@@ -7,3 +7,7 @@ source "https://rubygems.org"
 gem "rubocop", "~> 1.65"
 
 gem "solargraph", "~> 0.50.0"
+
+gem "google-apis-civicinfo_v2", "~> 0.23.0"
+
+gem "colorize", "~> 1.1"
