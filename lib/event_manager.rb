@@ -105,7 +105,6 @@ class HotRegDayTracker
   def add_registration(registration_datetime)
     datetime = Time.strptime(registration_datetime, "%M/%d/%y %H:%M")
     day = datetime.strftime("%A")
-    # puts "day : #{day}"
 
     increment_regs_by_day day
 
@@ -144,27 +143,11 @@ contents.each do |row|
   rhtml = ERB.new(template_letter)
   form_letter = rhtml.result(binding)
 
-  puts "name : #{name}, raw regdatetime : #{row[:regdate]}"
-
   hot_reg_hour_tracker.add_registration(reg_datetime)
   hot_reg_day_tracker.add_registration(reg_datetime)
 
   hot_hours = hot_reg_hour_tracker.hot_hours
   hot_days = hot_reg_day_tracker.hot_days
-  puts "reg_hours : #{hot_reg_hour_tracker.regs_by_hour}"
-  puts "hot_hours : #{hot_hours}"
-  puts "reg_days : #{hot_reg_day_tracker.regs_by_day}"
-  puts "hot_days : #{hot_days}"
-  puts "---------------------"
-  # puts datetime
-  # puts datetime.class
 
-  # puts "#{id}, #{legislators}, #{form_letter}"
-  # puts "name : #{name}, phone number : #{phone_number}"
-
-  # save_thank_you_letter(id, form_letter)
-  # personal_letter = template_letter.gsub("FIRST_NAME", name)
-  # personal_letter.gsub!("LEGISLATORS", legislator_names)
-  # puts personal_letter
-  #
+  save_thank_you_letter(id, form_letter)
 end
