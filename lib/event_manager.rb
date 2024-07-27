@@ -2,6 +2,7 @@ require "csv"
 require "google/apis/civicinfo_v2"
 require "colorize"
 require "erb"
+require "time"
 
 puts "Event Manager Initialized!"
 
@@ -64,6 +65,63 @@ def clean_phone_number(phone_number)
   end
 end
 
+# tracks what hours of the day has the most registration
+class HotRegHourTracker
+  attr_accessor :hot_hours, :regs_by_hour
+
+  def initialize
+    @regs_by_hour = {}
+    @hot_hours = []
+  end
+
+  def add_registration(registration_datetime)
+    datetime = Time.strptime(registration_datetime, "%M/%d/%y %H:%M")
+    hour = datetime.strftime("%H")
+
+    increment_regs_by_hour hour
+
+    max_num_regs = regs_by_hour.values.max
+    self.hot_hours = regs_by_hour.keys.select { |ele| regs_by_hour[ele] == max_num_regs }
+  end
+
+  def increment_regs_by_hour(hour)
+    if regs_by_hour[hour].nil?
+      regs_by_hour[hour] = 1
+    else
+      regs_by_hour[hour] += 1
+    end
+  end
+end
+
+# tracks what weekday of the day has the most registration
+class HotRegDayTracker
+  attr_accessor :hot_days, :regs_by_day
+
+  def initialize
+    @regs_by_day = {}
+    @hot_days = []
+  end
+
+  def add_registration(registration_datetime)
+    datetime = Time.strptime(registration_datetime, "%M/%d/%y %H:%M")
+    day = datetime.strftime("%A")
+    # puts "day : #{day}"
+
+    increment_regs_by_day day
+
+    max_num_regs = regs_by_day.values.max
+    self.hot_days = regs_by_day.keys.select { |ele| regs_by_day[ele] == max_num_regs }
+  end
+
+  def increment_regs_by_day(day)
+    if regs_by_day[day].nil?
+      regs_by_day[day] = 1
+    else
+      regs_by_day[day] += 1
+    end
+  end
+end
+
 contents = CSV.open(
   filename,
   headers: true,
@@ -71,6 +129,8 @@ contents = CSV.open(
 )
 
 template_letter = File.read("form_letter.erb")
+hot_reg_hour_tracker = HotRegHourTracker.new
+hot_reg_day_tracker = HotRegDayTracker.new
 
 contents.each do |row|
   id = row[0]
@@ -85,6 +145,20 @@ contents.each do |row|
   form_letter = rhtml.result(binding)
 
   puts "name : #{name}, raw regdatetime : #{row[:regdate]}"
+
+  hot_reg_hour_tracker.add_registration(reg_datetime)
+  hot_reg_day_tracker.add_registration(reg_datetime)
+
+  hot_hours = hot_reg_hour_tracker.hot_hours
+  hot_days = hot_reg_day_tracker.hot_days
+  puts "reg_hours : #{hot_reg_hour_tracker.regs_by_hour}"
+  puts "hot_hours : #{hot_hours}"
+  puts "reg_days : #{hot_reg_day_tracker.regs_by_day}"
+  puts "hot_days : #{hot_days}"
+  puts "---------------------"
+  # puts datetime
+  # puts datetime.class
+
   # puts "#{id}, #{legislators}, #{form_letter}"
   # puts "name : #{name}, phone number : #{phone_number}"
 
